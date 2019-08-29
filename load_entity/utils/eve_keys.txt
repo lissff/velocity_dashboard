@@ -1,0 +1,528 @@
+package com.paypal.risk.idi.library.keylib;
+
+import com.paypal.risk.idi.library.annotation.Type;
+import com.paypal.risk.idi.library.annotation.VariableType;
+import com.paypal.risk.idi.variables.AbstractBaseVariable;
+import com.paypal.risk.idi.variables.account.*;
+import com.paypal.risk.idi.variables.address.*;
+import com.paypal.risk.idi.variables.aware.email.default_email;
+import com.paypal.risk.idi.variables.aware.ip.ctx_session_ip;
+import com.paypal.risk.idi.variables.aware.ip.login_ip;
+import com.paypal.risk.idi.variables.aware.ip.login_ip_number;
+import com.paypal.risk.idi.variables.aware.vid.ctx_session_vid;
+import com.paypal.risk.idi.variables.aware.vid.login_vid;
+import com.paypal.risk.idi.variables.bank.*;
+import com.paypal.risk.idi.variables.beacon.beacon_cookie;
+import com.paypal.risk.idi.variables.beacon.beacon_http_etags;
+import com.paypal.risk.idi.variables.beacon.beacon_src_ip;
+import com.paypal.risk.idi.variables.context.access_instrument_id;
+import com.paypal.risk.idi.variables.context.merchant_type;
+import com.paypal.risk.idi.variables.context.merchant_zip;
+import com.paypal.risk.idi.variables.context.pos_entry_mode;
+import com.paypal.risk.idi.variables.contextVO.token_mcc;
+import com.paypal.risk.idi.variables.creditcard.billing_cntry;
+import com.paypal.risk.idi.variables.creditcard.industry2;
+import com.paypal.risk.idi.variables.dyson.dysonevent_account_number;
+import com.paypal.risk.idi.variables.dyson.dysonevent_app_guid;
+import com.paypal.risk.idi.variables.dyson.dysonevent_base_service_set_id;
+import com.paypal.risk.idi.variables.dyson.dysonevent_device_id;
+import com.paypal.risk.idi.variables.dyson.dysonevent_mac_address;
+import com.paypal.risk.idi.variables.dyson.dysonevent_phone_number;
+import com.paypal.risk.idi.variables.dyson.dysonevent_uniq_dev_id;
+import com.paypal.risk.idi.variables.dyson.last_dysonevent_bssid;
+import com.paypal.risk.idi.variables.edge.account.rcvr_last_login_fso;
+import com.paypal.risk.idi.variables.edge.account.rcvr_last_login_ip;
+import com.paypal.risk.idi.variables.edge.account.rcvr_last_login_ip3;
+import com.paypal.risk.idi.variables.edge.account.rcvr_last_login_vid;
+import com.paypal.risk.idi.variables.edge.account.sndr_last_login_fso;
+import com.paypal.risk.idi.variables.edge.account.sndr_last_login_ip;
+import com.paypal.risk.idi.variables.edge.account.sndr_last_login_ip3;
+import com.paypal.risk.idi.variables.edge.account.sndr_last_login_vid;
+import com.paypal.risk.idi.variables.edge.account2nd.cpxDerived.LastReceiverAtmptAcctPair;
+import com.paypal.risk.idi.variables.edge.account2nd.cpxDerived.LastReceiverTxnAcctPair;
+import com.paypal.risk.idi.variables.email.c_email_domain;
+import com.paypal.risk.idi.variables.email.email_domain;
+import com.paypal.risk.idi.variables.email.email_domain_raw;
+import com.paypal.risk.idi.variables.email.email_domain_upper;
+import com.paypal.risk.idi.variables.email.email_pattern;
+import com.paypal.risk.idi.variables.email.legacy_email_domain;
+import com.paypal.risk.idi.variables.email.primary_email_alias_lowercase;
+import com.paypal.risk.idi.variables.email.primary_email_alias_uppercase;
+import com.paypal.risk.idi.variables.factory.edge.R_DyAcctLastKOtherFuncVariableGroup;
+import com.paypal.risk.idi.variables.fraudnet.fd_browser_hash;
+import com.paypal.risk.idi.variables.fraudnet.fd_browser_name;
+import com.paypal.risk.idi.variables.fraudnet.fd_device_os_name;
+import com.paypal.risk.idi.variables.fraudnet.fd_screen_height;
+import com.paypal.risk.idi.variables.fraudnet.fd_screen_width;
+import com.paypal.risk.idi.variables.fraudnet.fd_super_cookie;
+import com.paypal.risk.idi.variables.fso.spear_fso_id;
+import com.paypal.risk.idi.variables.ip.*;
+import com.paypal.risk.idi.variables.ip2.IP;
+import com.paypal.risk.idi.variables.otf.indy_group_mc;
+import com.paypal.risk.idi.variables.otf.norm_cust_zip;
+import com.paypal.risk.idi.variables.otf.norm_merch_zip;
+import com.paypal.risk.idi.variables.otf.normalized_merch_name;
+import com.paypal.risk.idi.variables.otf.true_industry_id;
+import com.paypal.risk.idi.variables.partnership.email.partner_sndr_email;
+import com.paypal.risk.idi.variables.partnership.email.partner_sndr_email_domain;
+import com.paypal.risk.idi.variables.partnership.*;
+import com.paypal.risk.idi.variables.phone.*;
+import com.paypal.risk.idi.variables.radd.country_iso_code_uppercase;
+import com.paypal.risk.idi.variables.radd.keys.*;
+import com.paypal.risk.idi.variables.radd.primary_cc_bin_hmac;
+import com.paypal.risk.idi.variables.radd.IDI_CAM2013_TRUE_INDUSTRY.true_indstry;
+import com.paypal.risk.idi.variables.radd.IDI_CAM2013_TRUE_INDUSTRY.web_ctgry;
+import com.paypal.risk.idi.variables.radd.IDI_MISC_06.ARS_TRUE_INDUSTRY.cat;
+import com.paypal.risk.idi.variables.testvitalsign.*;
+import com.paypal.risk.idi.variables.transaction.*;
+import com.paypal.risk.idi.variables.triggerevent.actor_ip;
+import com.paypal.risk.idi.variables.withdraw.txn_bank_country;
+import com.paypal.risk.idi.variables.withdraw.txn_bank_branch;
+import com.paypal.risk.idi.variables.account.r_risk_region;
+import com.paypal.risk.idi.variables.account.s_risk_region;
+import com.paypal.risk.idi.variables.partnership.email.partner_sndr_email_upper;
+import com.paypal.risk.idi.variables.email.receiver_ctxt_email;
+
+/**
+ * Created by mzhang11 on 17/5/2.
+ */
+public class KeyLib {
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_email_domain = new c_email_domain();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_residence_1 = new primary_residence_1();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_bank_acct_number_hmac = new primary_bank_acct_number_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable spear_local_hour = new spear_local_hour();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable email_domain_upper = new email_domain_upper();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_phone = new primary_phone();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable SenderPrimaryPhoneNumber = new SenderPrimaryPhoneNumber();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable spear_de_gmt_offset = new spear_de_gmt_offset();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable cc_bin_hmac_1 = new cc_bin_hmac_1();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable TransactionFuzzyFSO = new TransactionFuzzyFSO();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable default_cc_bin_hmac = new default_cc_bin_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable rcvr_last_login_ip3 = new rcvr_last_login_ip3();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable billing_cntry = new billing_cntry();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_cc_bin_hmac_1 = new c_cc_bin_hmac_1();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable PrimaryAddrState = new PrimaryAddrState();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable shipping_addr_id = new shipping_addr_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable scntry_state = new scntry_state();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_last_added_bank_branch = new c_last_added_bank_branch();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_primary_residence = new s_primary_residence();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_primary_residence_1 = new c_primary_residence_1();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable TransactionIP = new TransactionIP();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_ip_country_uppercase_sub_region = new sub_region.s_ip_country_uppercase_sub_region();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable token_mcc = new token_mcc();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable dysonevent_uniq_dev_id = new dysonevent_uniq_dev_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable shipping_country = new shipping_country();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ip_number = new ip_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ivf_vid = new ivf_vid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_primary_residence = new c_primary_residence();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable rcvr_last_login_ip = new rcvr_last_login_ip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable TransactionIP_v2 = new TransactionIP_v2();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable true_indstry = new true_indstry();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ivf_fso = new ivf_fso();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable last_added_brn = new last_added_brn();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_bank_routing_number_1 = new primary_bank_routing_number_1();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable country_iso_code_uppercase = new country_iso_code_uppercase();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable currency_code = new currency_code();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable spear_fso_id = new spear_fso_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_primary_residence_sub_region = new sub_region.s_primary_residence_sub_region();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_dof_c = new c_dof_c();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable TransactionASN = new TransactionASN();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_primary_residence_sub_region = new sub_region.c_primary_residence_sub_region();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable r_user_industry = new r_user_industry();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_residence = new primary_residence();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable beacon_src_ip = new beacon_src_ip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_de_country_uppercase = new s_de_country_uppercase();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable legacy_email_domain = new legacy_email_domain();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_cc_number_hash = new c_cc_number_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_cc_bin_hmac = new primary_cc_bin_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_user_industry = new s_user_industry();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ip_country_v2 = new ip_country_v2();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable email_domain = new email_domain();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable last_added_bank_country = new last_added_bank_country();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable default_c_cc_bin_hmac = new default_c_cc_bin_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable fd_super_cookie = new fd_super_cookie();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ivf_ip = new ivf_ip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ip_range_start = new ip_range_start();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sender_ip3 = new sender_ip3();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sender_ip2 = new sender_ip2();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_region = new s_region();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primaryach_routing_number = new primaryach_routing_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ip_range_end = new ip_range_end();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable TransactionReceiver = new TransactionReceiver();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_dof_c = new s_dof_c();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_primary_bank_routing_number = new s_primary_bank_routing_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable r_cntry_state = new r_cntry_state();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable cc_number_hash = new cc_number_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable fd_browser_hash = new fd_browser_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_industry2 = new s_industry2();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable web_ctgry = new web_ctgry();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable rcvr_last_login_fso = new rcvr_last_login_fso();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_primary_timezone = new s_primary_timezone();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_bank_routing_number_1 = new txn_bank_routing_number_1();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable email_domain_raw = new email_domain_raw();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bin_country_sub_region = new sub_region.bin_country_sub_region();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_last_added_brn = new c_last_added_brn();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ip_country = new ip_country();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable last_added_bank_branch = new last_added_bank_branch();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable rcvr_last_login_vid = new rcvr_last_login_vid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_primary_timezone = new c_primary_timezone();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable dysonevent_app_guid = new dysonevent_app_guid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_primary_bank_routing_number_1 = new c_primary_bank_routing_number_1();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ip_seg123 = new ip_seg123();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_cc_bin_hmac = new c_cc_bin_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_last_added_bank_country = new c_last_added_bank_country();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable TransactionCIDR = new TransactionCIDR();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable cc_bin_hmac = new cc_bin_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bin_country = new bin_country();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable arm_routing_number = new arm_routing_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ReceiverAccountNumber = new ReceiverAccountNumber();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable industry2 = new industry2();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_email_alias_uppercase = new primary_email_alias_uppercase();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bank_country = new bank_country();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable AccountNumber = new AccountNumber();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable TransactionVID = new TransactionVID();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable personal_payment_send = new personal_payment_send();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable dysonevent_base_service_set_id = new dysonevent_base_service_set_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable dysonevent_mac_address = new dysonevent_mac_address();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_email_alias_lowercase = new primary_email_alias_lowercase();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable IP = new IP();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable TransactionShippingAddressEdgeContainerKey = new TransactionShippingAddressEdgeContainerKey();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_bank_acct_hmac_routing_num = new txn_bank_acct_hmac_routing_num();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable LastReceiverAtmptAcctPair = new LastReceiverAtmptAcctPair();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable last_email_alias = new last_email_alias();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable SenderReceiverAccountNumber = new SenderReceiverAccountNumber();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ReceiverSenderAccountNumber = new ReceiverSenderAccountNumber();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable dysonevent_device_id = new dysonevent_device_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable LastReceiverTxnAcctPair = new LastReceiverTxnAcctPair();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_phone_number = new primary_phone_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable primary_phone_with_dash = new primary_phone_with_dash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable beacon_cookie = new beacon_cookie();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable last_added_email_alias_lowercase = new last_added_email_alias_lowercase();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable numeric_address = new numeric_address();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable beacon_http_etags = new beacon_http_etags();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_cc_number_hash = new txn_cc_number_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable addbankFLName = new addbankFLName();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable addccFLName = new addccFLName();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable addrchgFLName = new addrchgFLName();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable addSingupFLName = new addSingupFLName();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable last_dysonevent_bssid = new last_dysonevent_bssid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable cat = new cat();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable DummyAccountNumber = new DummyAccountNumber();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable dysonevent_account_number = new dysonevent_account_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable fd_browser_name = new fd_browser_name();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable fd_screen_height = new fd_screen_height();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable fd_screen_width = new fd_screen_width();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable fd_device_os_name = new fd_device_os_name();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sender_ip1 = new sender_ip1();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_ship_ad_hash = new txn_ship_ad_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable email_domain_lower = new email_domain_lower();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable r_dyson_appguid = new R_DyAcctLastKOtherFuncVariableGroup.r_dyson_appguid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable r_fn_super_cookie = new R_DyAcctLastKOtherFuncVariableGroup.r_fn_super_cookie();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable r_dyson_unique_dev_id = new R_DyAcctLastKOtherFuncVariableGroup.r_dyson_unique_dev_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable r_fn_brower_hash = new R_DyAcctLastKOtherFuncVariableGroup.r_fn_brower_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable r_dyson_bssid = new R_DyAcctLastKOtherFuncVariableGroup.r_dyson_bssid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable cust_zip = new cust_zip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable email_pattern = new email_pattern();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ebay_item_id = new ebay_item_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable binhmac_receiver = new binhmac_receiver();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sndr_last_login_fso = new sndr_last_login_fso();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sndr_last_login_vid = new sndr_last_login_vid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sndr_last_login_ip3 = new sndr_last_login_ip3();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sndr_last_login_ip = new sndr_last_login_ip();
+    @Deprecated
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable login_ip = new login_ip();
+    @Deprecated
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable login_ip_number = new login_ip_number();
+    @Deprecated
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable login_vid = new login_vid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable email_raw = new email_raw();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable default_email = new default_email();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable billing_ctx_naddress = new billing_ctx_naddress();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable dysonevent_phone_number = new dysonevent_phone_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_id = new txn_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable activity_id = new activity_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable actor_ip = new actor_ip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_bank_country = new txn_bank_country();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_bank_branch = new txn_bank_branch();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_bank_routing_number = new txn_bank_routing_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bin_hmac = new bin_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_instrument_id = new txn_instrument_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable txn_card_type = new txn_card_type();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable SenderLstAddedPhonePrefix7Number = new SenderLstAddedPhonePrefix7Number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable target_cc_number_hash = new target_cc_number_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable target_cc_bin_hmac = new target_cc_bin_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ebay_leaf_item_first_categ_id = new ebay_leaf_item_first_categ_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable shipping_numeric_addr = new shipping_numeric_addr();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable partner_sndr_email = new partner_sndr_email();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable vm_partner_sender_id = new vm_partner_sender_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable vm_sndr_ip = new vm_sndr_ip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_ctxt_phn_num = new s_ctxt_phn_num();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable  PartnerReceiverAccountNumber = new PartnerReceiverAccountNumber();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_primary_zip = new c_primary_zip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_email_domain_lower = new c_email_domain_lower();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable last_added_cc_number_hash = new last_added_cc_number_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable c_last_added_cc_number_hash = new c_last_added_cc_number_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable counterparty_alias = new counterparty_alias();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable norm_cust_zip = new norm_cust_zip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable norm_merch_zip = new norm_merch_zip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable merchant_type = new merchant_type();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable true_industry_id = new true_industry_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable pos_entry_mode = new pos_entry_mode();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable merchant_zip = new merchant_zip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable access_instrument_id = new access_instrument_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable normalized_merch_name = new normalized_merch_name();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable indy_group_mc = new indy_group_mc();
+    
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable flow_family = new flow_family();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable r_risk_region = new r_risk_region();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_risk_region = new s_risk_region();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sndr_ebay_user_name = new sndr_ebay_user_name();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_merchant_id = new bt_merchant_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_customer_id = new bt_customer_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable partner_curr_iso_code = new partner_curr_iso_code();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_bill_postal_code = new bt_bill_postal_code();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable partner_sndr_email_domain = new partner_sndr_email_domain();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable partner_phn_num = new partner_phn_num();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable fi_id = new fi_id();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable fi_cc_bin = new fi_cc_bin();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable partner_sndr_email_upper = new partner_sndr_email_upper();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_merchant_ip2 = new bt_merchant_ip2();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_merchant_ip3 = new bt_merchant_ip3();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_merchant_ip_range_start = new bt_merchant_ip_range_start();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_merchant_ip_range_end = new bt_merchant_ip_range_end(); 
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_merchant_ip_number = new bt_merchant_ip_number();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable bt_merchant_ip = new bt_merchant_ip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable receiver_ctxt_email = new receiver_ctxt_email();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable partner_receiver_phn_num = new partner_receiver_phn_num();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ctxt_norm_ship_addr_hash = new ContextNormAddressVariables.ctxt_norm_ship_addr_hash();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable sender_ip3_numeric = new sender_ip3_numeric();
+
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable vm_client_fingerprint = new VenmoContextVariable.vm_client_fingerprint();
+
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_primary_addr_hash_64 = new s_primary_addr_hash_64();
+
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_lst_added_addr_hash_64 = new s_lst_added_addr_hash_64();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_primary_phone_num = new s_primary_phone_num();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable s_lst_added_phone_num = new s_lst_added_phone_num();
+
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ctx_bin_country = new ctx_bin_country();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable  ctx_cc_bin_hmac= new ctx_cc_bin_hmac();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ctx_session_ip = new ctx_session_ip();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ctx_session_vid = new ctx_session_vid();
+    @Type(VariableType.EVE_KEY)
+    public static final AbstractBaseVariable ctx_cc_number_hash = new ctx_cc_number_hash();
+}
