@@ -1,9 +1,8 @@
 from global_entity import GlobalEntity
 from utils.graph_db import graph
 from datetime import datetime
-from utils import utils
 import pytz
-
+import re
 
 class Watermark(GlobalEntity):
     """Watermark entity, which keeps the last updated date-time.
@@ -46,7 +45,7 @@ class Watermark(GlobalEntity):
                 self.last_updated = datetime(1970, 1, 1)
             self.update_properties()
         else:
-            self.last_updated = utils.timestamp_to_datetime(self.node['last_updated'])
+            self.last_updated = self.timestamp_to_datetime(self.node['last_updated'])
         return self.node
 
     def update_properties(self, **properties):
@@ -60,3 +59,18 @@ class Watermark(GlobalEntity):
         if self.last_updated:
             properties.update(last_updated=str(self.last_updated))
         super(Watermark, self).update_properties(**properties)
+
+
+    def timestamp_to_datetime(self, timestamp_str, date_delim='-', time_delim=':'):
+        """Converts datetime string to datetime object
+
+        Args:
+            date_str: A string represents a datetime, delimited by the delimiter parameters
+                e.g. 1970-01-01 00:00:00 (delimiters are '-' and ':')
+            date_delim: Delimites the different parts of the date string (defaults to '-')
+            time_delim: Delimites the different parts of the time string (defaults to ':')
+
+        Returns:
+            The datetime object.
+        """
+        return datetime(*map(int, re.split('-|:| ', timestamp_str)))

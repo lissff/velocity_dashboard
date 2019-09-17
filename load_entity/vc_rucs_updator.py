@@ -37,7 +37,7 @@ class VarCatalog(object):
         self._load_raw_edge_to_euler()
         self.watermark.update_properties()
 
-    def run(self):
+    def run_rtcs_var(self):
         """Main class function.
 
         Loads new variables to the Euler datastore.
@@ -56,14 +56,9 @@ class VarCatalog(object):
                 if len(var['variable_status']) > 1 and var['variable_status'] == 'Retired':
                     self._retire_variable_from_db(var['variable_name'])
 
-                #elif var['release_date'] == '' or var['variable_type'] == 'EDGE':
-                #    var_entity = self._create_var_entity(var)
-                #    self._create_non_variable_entities(var, var_entity)
-                    #self.add_rules(var['variable_name'])
                 elif self._should_process_variable(var):
                     var_entity = self._create_var_entity(var)
-                    self._create_non_variable_entities(var, var_entity)
-                    #self.add_rules(var['variable_name'])
+                    self._create_non_variable_entities(var, var_entity)              
                     self._update_max_datetime(utils.date_str_to_datetime(var['release_date']))
             except:
                 pass
@@ -77,7 +72,7 @@ class VarCatalog(object):
         Returns:
             True if the variable should be processed, otherwise False.
         """
-        if 'variable_type' in var and 'release_date' in var :
+        if 'variable_type' in var and 'release_date' in var and len(var['release_date']) > 0:
             if var['variable_type'] in self.variable_types:
                 var_release_datetime = utils.date_str_to_datetime(var['release_date'])
                 return var_release_datetime > self.watermark.last_updated
@@ -97,7 +92,6 @@ class VarCatalog(object):
                             release_date=var['release_date'],
                             status=var['variable_status'],
                             type=var['variable_type'])
-            print var['variable_name'], var['release_date'],var['variable_status'],var['variable_type']
             var_entity.create_node()
             return var_entity
         except ValueError:
@@ -126,77 +120,18 @@ class VarCatalog(object):
         #TODO:call rucs for more info
         try:
             if 'table_name' in var:
-                self._radd_handler(var, var_entity)
+                utils.radd_handler(var['field_name'], var['table_name'] , var_entity)
             if 'used_models' in var:
                 self._model_handler(var, var_entity)
             if 'edge_container' in var:
-                self._edge_handler(var, var_entity)
+                utils.edge_handler(var['edge_container'],var['edge_key'], var['edge_value_key'], var_entity)
             self._get_rucs_dependency(var['variable_name'])
         except AttributeError:
 
             pass
-    def _radd_handler(self, var, var_entity):
-        """Handler method for RADD dependencies.
 
-        Creates the RADD entities and relationship to the variable.
 
-        Args:
-            var: the variable object (from the Variable Catalog).
-            var_entity: Var object corresponding to the var object.
-        """
-        self._create_radd_entities(var['table_name'])
-        if var['field_name'] is not None:
-            radd_fields_lists = self._get_radd_fields(var['field_name'])
-            if len(radd_fields_lists)>0:
-                for radd_name, fields in zip(var['table_name'], radd_fields_lists):
-                    radd_entity = self.radds[radd_name]
-                    var_entity.create_unique_relationship('QUERIES', radd_entity.node,
-                                                          radd_fields=fields)
 
-    def _create_radd_entities(self, radds_list):
-        """Creates RADD entities and their corresponding nodes in the Euler datastore.
-
-        Args:
-            radds_list: a list of Model names.
-        """
-        for radd_name in radds_list:
-            if radd_name not in self.radds:
-                self.radds[radd_name] = RADD(name=radd_name)
-                self.radds[radd_name].create_node()
-
-    def _get_radd_fields(self, fields):
-        """Processes the RADD fields string from the Variable Catalog.
-
-        The RADD fields correspond to the RADDs list in the same variable object.
-        Fields used per RADD are seperated by a comma (','). Per RADD the fields are
-            seperated by tilde ('~'). For example:
-            'field_1~field_2,other_field' ==> [['field_1', 'field_2'], ['other_field']]
-
-        Args:
-            fields: A string represents the used RADDs fields.
-        Returns:
-            A list of lists of RADD fields (strings).
-        """
-        # get RADD fields per RADD
-
-        radd_fields = fields.split(',')
-        # if more than one field is used per RADD, '~' is used as a delimiter
-        # split by '~' and return list of lists
-        radd_fields_lists = [self._get_unique_fields(f) for f in radd_fields]
-        return radd_fields_lists
-
-    def _get_unique_fields(self, fields):
-        """Remove fields duplicated
-
-        Args:
-            fields: A string of fields, seperated by tilde ('~').
-        Returns:
-            A list of unique fields (strings).
-        """
-        # remove None values from list and get unique values (set)
-
-        unique_fileds = set([f for f in fields.split('~') if f is not None])
-        return list(unique_fileds)
 
     def _model_handler(self, var, var_entity):
         """Handler method for Model dependencies.
@@ -228,9 +163,6 @@ class VarCatalog(object):
 
             if len(var['variable_status']) > 1 and var['variable_status'] == 'Retired':
                 self._retire_variable_from_db(var['variable_name'])
-            elif var['release_date'] == '' :
-                var_entity = self._create_raw_edge_entity(var)
-                self._create_non_variable_entities(var, var_entity)
 
             elif self._should_process_variable(var):
                 var_entity = self._create_raw_edge_entity(var)
@@ -240,43 +172,7 @@ class VarCatalog(object):
         self.watermark.last_updated = self.max_datetime
 
 
-    def _edge_handler(self, var, var_entity):
-        """Handler method for Edge Container dependencies.
 
-        Creates the Edge Container entities and relationship to the variable.
-
-        Args:
-            var: the variable object (from the Variable Catalog).
-            var_entity: Var object corresponding to the var object.
-        """
-        print 'need create raw edge' + var['edge_container']
-        edge_name = var['edge_container']
-        edge_key = var['edge_key']
-        raw_edge = var['edge_value_key']
-        if self._is_empty(edge_name):
-            return      
-        edge_entity = EdgeContainer(name=edge_name)
-        edge_entity.create_node()
-        var_entity.create_unique_relationship('ATTRIBUTE_OF', edge_entity.node)
-        self.edge_containers[edge_name] = edge_entity
-
-        if self._is_empty(edge_key):
-            return
-        key_entity = Var(name=edge_key)
-        key_entity.create_node()
-        var_entity.create_unique_relationship('USING_KEY', key_entity.node)
-
-        if self._is_empty(raw_edge):
-            return 
-        raw_edge_entity = Var(name=raw_edge, is_raw_edge=True)
-        raw_edge_entity.create_node()
-        var_entity.create_unique_relationship('DEPEND_ON', raw_edge_entity.node)
-
-    def _is_empty(self, str):
-        if str is None or len(str) < 1:
-            return True
-        else:
-            return False
         
     def _update_max_datetime(self, release_datetime):
         """Updates self.max_datetime if release_datetime is newer.
@@ -345,6 +241,6 @@ class VarCatalog(object):
             varname = var['name'].rstrip()
 
             self._get_rucs_dependency(varname)
-#VarCatalog('edge').run_raw_edge()
-#VarCatalog('rtcs').run()
-VarCatalog('test').run_test()
+VarCatalog('edge').run_raw_edge()
+VarCatalog('rtcs').run_rtcs_var()
+#VarCatalog('test').run_test()
