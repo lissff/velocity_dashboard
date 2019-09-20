@@ -18,35 +18,31 @@ class GitUpdator(object):
         self.UPDATE_DT = date.today()
         self.CONTEXT = ssl._create_unverified_context()
         self.CHECKPOINTS = ['ADDCC' , 'CONSOLIDATEDFUNDING' , 'WITHDRAWALATTEMPT']
-
-        self.EVENTS = ['CreditCardCreated', 'CreditCardChanged', 'CCAuth', 'PaymentAttempt', \
-                'DecisionResult', 'RiskWithdrawalAttemptDecision', 'PaymentDebit' \
-                'PaymentDebitNewDO', 'PaymentAttemptNewDO', 'PaymentAttemptVO']
-
         
     def run_checkpoint_mapping(self):
-        for cp in self.CHECKPOINTS:
-            self.get_checkpoint_var_from_code(cp)
+        ret = graph.cypher.execute('match(cp:Checkpoint) return cp.name as name order by name')
+
+        for cp in ret:
+            self.get_checkpoint_var_from_code(cp.name)
 
     def get_checkpoint_var_from_code(self, checkpoint):
         """
             weekly fetch checkpoint -[:CHECKPOINT_OF] - var relationship from unified-parent
 
         """
-        if checkpoint == 'ADDCC':
-            checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/AddCCFullVariableTrack/AddCCFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
-            file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/AddCCFullVariableTrack/AddCCFullVariableTrack.vt.json"
-        
-        elif checkpoint == 'CONSOLIDATEDFUNDING':
+        if checkpoint == 'ConsolidatedFunding':
             checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/BREFullVariableTrack/BREFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
             file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/BREFullVariableTrack/BREFullVariableTrack.vt.json"
 
-        elif checkpoint == 'WITHDRAWALATTEMPT':
+        elif checkpoint == 'WithdrawalAttempt':
             checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
             file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json"
-
+         
         else:
-            pass
+            checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
+            file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/"+checkpoint+"FullVariableTrack/"+checkpoint+"FullVariableTrack.vt.json"
+         
+
         var_checkpoint= "  match(c:Checkpoint{{name:'{checkpoint}'}}) \
                         merge (v:Var{{name:'{varname}'}}) \
                         set v.update_dt = '{update_dt}' \
@@ -56,19 +52,26 @@ class GitUpdator(object):
         html = urllib2.urlopen(checkpoint_url, context=self.CONTEXT)
         json_file = json.loads(html.read())
         """
-        with open(file_path, "r") as read_file:
-            json_file = json.load(read_file)
-        for varclass in json_file['classBasedVariables']:
-            var = varclass.split('.')[0]
-            var_set.add(var)
-
-        for varname in json_file['configurableVariables']:
-            var_set.add(varname)
+        try:
+            with open(file_path, "r") as read_file:
+                json_file = json.load(read_file)
+     
         
-        for varname in var_set:
-            print varname
-            #print var_checkpoint.format(checkpoint=checkpoint, varname=varname, update_dt=self.UPDATE_DT)
-            graph.cypher.execute(var_checkpoint.format(checkpoint=checkpoint, varname=varname, update_dt=self.UPDATE_DT))
+            for varclass in json_file['classBasedVariables']:
+                var = varclass.split('.')[0]
+                var_set.add(var)
+
+            for varname in json_file['configurableVariables']:
+                var_set.add(varname)
+            
+            for varname in var_set:
+                print varname
+                #print var_checkpoint.format(checkpoint=checkpoint, varname=varname, update_dt=self.UPDATE_DT)
+                graph.cypher.execute(var_checkpoint.format(checkpoint=checkpoint, varname=varname, update_dt=self.UPDATE_DT))
+            
+        except:
+            print 'no such file found' + checkpoint
+            pass
 
     def get_eve_keylib_from_code(self):
         """
@@ -97,7 +100,9 @@ class GitUpdator(object):
         """
         with open("/Users/metang/workspace/variable-metadata/major-variable-metadata/target/classes/metadata/variable/variable_metadata.json", "r") as read_file:
             data = json.load(read_file)
-            for item in data:
+            rest_data = self._remove_existing_var(data)
+        
+            for item in rest_data:
                 try:
                     variable_type = item['type']
                     variable_name = item['name']
@@ -138,8 +143,10 @@ class GitUpdator(object):
                     
                 except:
                     pass
+
         #decay edge is depending on itself:
         graph.cypher.execute("match(v:Var) where v.name contains '_dk_' and v.edge_type='Decay'  create unique (v)-[:DEPEND_ON]-(v)")
+        
 
     def _create_raw_edge_entity(self, variable_name, aggregation_type, edge_type):
 
@@ -161,8 +168,16 @@ class GitUpdator(object):
         var_entity.create_node()
         return var_entity
 
+    def _remove_existing_var(self, dataset):
+        varset = set()
+        ret = graph.cypher.execute('match(v:Var) return v.name as name order by name')
+        for variable in ret:
+            varset.add(variable.name)
+        rest = [i for i in dataset if not (i['name'] in varset)] 
+        
+
     def _create_var_entity(self, variable_type, variable_name):
-        """Creates the variable entity and the remote node in the Euler datastore.
+        """Creates the variable entity and the remote node in the datastore.
 
         Args:
             var: a dictionary with the variable data.
@@ -181,3 +196,4 @@ class GitUpdator(object):
 GitUpdator().parse_variable_metadata()
 #GitUpdator().get_checkpoint_var_from_code('WITHDRAWALATTEMPT')
 #GitUpdator().get_eve_keylib_from_code()
+#GitUpdator().run_checkpoint_mapping()

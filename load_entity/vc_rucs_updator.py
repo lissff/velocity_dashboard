@@ -12,7 +12,6 @@ from utils.graph_db import graph
 VARIABLE_CATALOG_BASE_URL = 'http://10.176.1.109:3000/api/variables'  # NOQA
 VARIABLE_CATALOG_TOKEN = 'a1f98939c5b8cea62b099e5fb13cf5b7'
 RUCS_DEP_URL = 'http://10.176.4.64:8080/v1/risk/management-portal/component/rucs/dependency?variable={variable}'
-# VARIABLE_CATALOG_FULL_URL = VARIABLE_CATALOG_BASE_URL + '/?token=' + VARIABLE_CATALOG_TOKEN + '&select=all&service=rtcs'  # NOQA
 CONTEXT = ssl._create_unverified_context()
 
 class VarCatalog(object):
@@ -26,28 +25,25 @@ class VarCatalog(object):
         self.watermark = Watermark('VarCatalog_'+service)
         self.watermark.create_node()
         self.max_datetime = self.watermark.last_updated
-        #self.add_rules = VarRuleUpdator().singleRun
         variable_catalog_full_url = VARIABLE_CATALOG_BASE_URL + '/?token=' + VARIABLE_CATALOG_TOKEN + '&select=all&service=' + service
         html = urllib2.urlopen(variable_catalog_full_url, context=CONTEXT)
         self.variables = json.loads(html.read())
 
-
-    
     def run_raw_edge(self):
-        self._load_raw_edge_to_euler()
+        self._load_raw_edge()
         self.watermark.update_properties()
 
     def run_rtcs_var(self):
         """Main class function.
 
-        Loads new variables to the Euler datastore.
+        Loads new variables to the datastore.
         Updates the Watermark entity with the newest release datetime.
         """
-        self._load_variables_to_euler()
+        self._load_variable()
         self.watermark.update_properties()
 
-    def _load_variables_to_euler(self):
-        """Iterates over all Variables from the Variable Catalog and loads to Euler.
+    def _load_variables(self):
+        """Iterates over all Variables from the Variable Catalog and loads to db.
 
         Only processes relevent varialbe types and new variables.
         """
@@ -79,7 +75,7 @@ class VarCatalog(object):
 
 
     def _create_var_entity(self, var):
-        """Creates the variable entity and the remote node in the Euler datastore.
+        """Creates the variable entity and the remote node in the datastore.
 
         Args:
             var: a dictionary with the variable data.
@@ -120,7 +116,7 @@ class VarCatalog(object):
         #TODO:call rucs for more info
         try:
             if 'table_name' in var:
-                utils.radd_handler(var['field_name'], var['table_name'] , var_entity)
+                utils.radd_handler(var['field_name'], var['table_name'] , '', var_entity)
             if 'used_models' in var:
                 self._model_handler(var, var_entity)
             if 'edge_container' in var:
@@ -148,7 +144,7 @@ class VarCatalog(object):
             model_entity.create_unique_relationship('CONSUMES', var_entity.node)
 
     def _create_model_entities(self, models_list):
-        """Creates Model entities and their corresponding nodes in the Euler datastore.
+        """Creates Model entities and their corresponding nodes in the datastore.
 
         Args:
             models_list: a list of Model names.
@@ -158,7 +154,7 @@ class VarCatalog(object):
                 self.models[model_name] = Model(name=model_name)
                 self.models[model_name].create_node()
 
-    def _load_raw_edge_to_euler(self):
+    def _load_raw_edge(self):
         for var in self.variables:
 
             if len(var['variable_status']) > 1 and var['variable_status'] == 'Retired':
@@ -243,4 +239,3 @@ class VarCatalog(object):
             self._get_rucs_dependency(varname)
 VarCatalog('edge').run_raw_edge()
 VarCatalog('rtcs').run_rtcs_var()
-#VarCatalog('test').run_test()

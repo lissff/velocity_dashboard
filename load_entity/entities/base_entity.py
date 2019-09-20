@@ -3,10 +3,10 @@ from py2neo import Relationship
 
 
 class BaseEntity(object):
-    """Base Euler entity.
+    """Base entity.
 
     Implements base interactions with the chosen data store.
-    This should be used as the base class for any entity in the Euler application.
+    This should be used as the base class for any entity in the application.
 
     Attributes:
         node: data store object representing the entity (py2neo.Node)

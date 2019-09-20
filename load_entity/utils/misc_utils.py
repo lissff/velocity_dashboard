@@ -164,13 +164,13 @@ def remove_retired():
     html = urllib2.urlopen(url)
     json_file = json.loads(html.read())
 
-    euler_reired = set()
+    reired = set()
     edge_live = set()
     rtcs_live = set()
     with open('iras_retired.txt', 'r') as out:
         for item in out:
-            euler_reired.add(item.rstrip())
-    print len(euler_reired)
+            reired.add(item.rstrip())
+    print len(reired)
 
 
 
@@ -195,11 +195,11 @@ def remove_retired():
         if status <> 'Retired':
             rtcs_live.add(variable)
     print len(rtcs_live)
-    print len(euler_reired - rtcs_live)
-    print len(euler_reired - rtcs_live - edge_live)
+    print len(reired - rtcs_live)
+    print len(reired - rtcs_live - edge_live)
 
     with open('final_retired.txt', 'w') as out:
-        for item in (euler_reired - rtcs_live - edge_live):
+        for item in (reired - rtcs_live - edge_live):
             out.write(item+'\n')
 
 

@@ -4,10 +4,10 @@ from base_entity import BaseEntity
 
 
 class LocalEntity(BaseEntity):
-    """Local Euler Entity
+    """Local Entity
 
     Implements local entity specific interactions with the chosen data store.
-    This should be used as the base class for any local entity in the Euler application.
+    This should be used as the base class for any local entity in the application.
 
     Attributes:
         label: the entity type (LocalVar, AggValue, ...)

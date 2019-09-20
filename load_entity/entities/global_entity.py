@@ -4,10 +4,10 @@ from base_entity import BaseEntity
 
 
 class GlobalEntity(BaseEntity):
-    """Global Euler Entity
+    """Global Entity
 
     Implements global entity specific interactions with the chosen data store.
-    This should be used as the base class for any global entity in the Euler application.
+    This should be used as the base class for any global entity in the application.
 
     Attributes:
         uniq_attr_name: name of the entity's unique attribute

@@ -169,7 +169,7 @@ def get_unique_fields(fields):
     return list(unique_fileds)
     
 def create_radd_entities(radd_name):
-    """Creates RADD entities and their corresponding nodes in the Euler datastore.
+    """Creates RADD entities and their corresponding nodes in the datastore.
 
     Args:
         radds_list: a list of Model names.

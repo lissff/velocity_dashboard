@@ -14,18 +14,26 @@ class EVEUpdator(object):
         update from eve API before finally migrate dashboard to EVEBuilder
     """
     def __init__(self):
-        self.EVENT_LIST = {"PaymentDebit" , "Withdrawal" , "PaymentAttempt" , "UnilateralPaymentCompeletion" , "BankCompletion" , "DisputeNotification" , "CreditCardCreated" , "UserEmailChanged" , "YodleeBankAccountTransactionData" , "BankAccountAdded" , "NewAccountCreated" , "UserPhoneChanged" , "CCAuthResult" , "DecisionResult" , "LoginSucceeded" , "LoginFailed" , "LoginChanged" , "AddressChanged" , "BankAccountChanged" , "PaymentCredit" , "DecisionAttempt" , "Reversal" , "Refund" , "DepositComplete" , "CreditCardAddRejected" , "CreditCardChanged" , "PrimaryBankAccountChanged" , "UserAccountChanged" , "PaymentCompletion" , "FIWalletInstrumentAdded" , "LimitationAdded" , "LimitationLifted" , "LimitationUpdated" , "LimitationEscalated" , "DisputeLifecycle" , "LoginPartial" , "WithdrawalReversal" , "UserDataChanged" , "FidoLifeCycleEvents" , "FIWalletInstrumentRemoved" , "AccessInstrumentValidationAttemptedMessage" , "RiskPartnerTxnAttemptEvent" , "IDICaseEvent" , "BAEventsMessage" , "RuleCheckpointEvent" , "UserIdentityVerification" , "DepositAttemptRejectedRequest" , "LoginAttemptEvaluation" , "POSISO" , "MadmenBREVariableTrack" , "UserFundsAvailabilityEvent" , "BRECheckpointResult" , "LexaContact" , "VenmoCacheOutTransactionDataLakeTable" , "VenmoCashOut" , "VenmoAddFI" , "OnboradingGCCheckpointResult" , "RiskWithdrawalAttemptDecision" , "LoginCheckpointResult" , "BTPaymentAttempt" , "VenmoRemoveFI" , "PaymentAttemptVO" , "VenmoProfileChange" , "PaymentDebitNewDO" , "DisputeLifecycleNewDO" , "RDAConsolidatedDO" , "BraintreeTxnDatalakeTable" , "PartnerDeposit" , "WithdrawalCheckpointResult" , "PaymentAttemptNewDO" , "MUSE_EDGE" , "RiskAccountTokenCardEvents" , "FPTI_LOGIN" , "NewAccountCreatedNewDO"}
+        self.EVENT_LIST = {"PaymentDebit" , "Withdrawal" , "PaymentAttempt" , "UnilateralPaymentCompeletion" , "BankCompletion" , \
+            "DisputeNotification" , "CreditCardCreated" , "UserEmailChanged" , "YodleeBankAccountTransactionData" , \
+            "BankAccountAdded" , "NewAccountCreated" , "UserPhoneChanged" , "CCAuthResult" , "DecisionResult" , "LoginSucceeded" ,\
+            "LoginFailed" , "LoginChanged" , "AddressChanged" , "BankAccountChanged" ,"PaymentCredit" , "DecisionAttempt" , \
+            "Reversal" , "Refund" , "DepositComplete" , "CreditCardAddRejected" , "CreditCardChanged" , "PrimaryBankAccountChanged" ,\
+            "UserAccountChanged" , "PaymentCompletion" , "FIWalletInstrumentAdded" , "LimitationAdded" , "LimitationLifted" , \
+            "LimitationUpdated" , "LimitationEscalated" , "DisputeLifecycle" , "LoginPartial" , "WithdrawalReversal" , "UserDataChanged" , \
+            "FidoLifeCycleEvents" , "FIWalletInstrumentRemoved" , "AccessInstrumentValidationAttemptedMessage" , \
+            "RiskPartnerTxnAttemptEvent" , "IDICaseEvent" , "BAEventsMessage" , "RuleCheckpointEvent" , "UserIdentityVerification" , \
+            "DepositAttemptRejectedRequest" , "LoginAttemptEvaluation" , "POSISO" , "MadmenBREVariableTrack" , "UserFundsAvailabilityEvent" ,\
+            "BRECheckpointResult" , "LexaContact" , "VenmoCacheOutTransactionDataLakeTable" , "VenmoCashOut" , "VenmoAddFI" , \
+            "OnboradingGCCheckpointResult" , "RiskWithdrawalAttemptDecision" , "LoginCheckpointResult" , "BTPaymentAttempt" , "VenmoRemoveFI" , \
+            "PaymentAttemptVO" , "VenmoProfileChange" , "PaymentDebitNewDO" , "DisputeLifecycleNewDO" , "RDAConsolidatedDO" , \
+            "BraintreeTxnDatalakeTable" , "PartnerDeposit" , "WithdrawalCheckpointResult" , "PaymentAttemptNewDO" , "MUSE_EDGE" , \
+            "RiskAccountTokenCardEvents" , "FPTI_LOGIN" , "NewAccountCreatedNewDO"}
     
     def run_eve_updator(self):
         for event in self.EVENT_LIST:
             self.get_event_raw_dependency_from_eve(event, event)
-    def parse_eve_keys():
-        pass
-        
 
-    def get_event_key_dependency_from_eve(self, event, table_name):
-            pass
-        
     def get_event_raw_dependency_from_eve(self, event, table_name):
         """
         weekly fetch from evebuilder eventkey -[:ATTRIBUTE_OF] - raw relationship
@@ -45,13 +53,10 @@ class EVEUpdator(object):
         opener.addheaders.append(('Cookie', 'edge_builder=s%3Av79eqgLsj0XwgxJYigllG8sYRn2JZqdx.xyqUIdp7X7uROP5j6gK2i7UppsDfjr21hYbJyCUCKd0'))
         html = opener.open(URL.format(event=event))
         json_file = json.loads(html.read())
-        
-
-        #with open("decisionresult.json", "r") as read_file:
-        #    json_file = json.load(read_file)
-
 
         var_list = json_file['data']
+        
+    
         for var in var_list:
             json_keys =  var.keys()
             for updator in var['updators']:
@@ -65,4 +70,8 @@ class EVEUpdator(object):
                         graph.cypher.execute(MAP_EVENT_VAR.format(eventkey=table_name+'.'+updator['key'], var=var['name']))
                 except:
                     pass
+
+    def _should_process_raw_edge():
+
+
 EVEUpdator().run_eve_updator()
