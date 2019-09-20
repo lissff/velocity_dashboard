@@ -105,7 +105,7 @@ def edge_handler(edge_container, edge_key, raw_edge, var_entity):
     raw_edge_entity.create_node()
     var_entity.create_unique_relationship('DEPEND_ON', raw_edge_entity.node)
 
-def radd_handler(field_name, table_name, var_entity):
+def radd_handler(field_name, table_name, radd_key, var_entity):
     """Handler method for RADD dependencies.
 
     Creates the RADD entities and relationship to the variable.
@@ -114,6 +114,15 @@ def radd_handler(field_name, table_name, var_entity):
         var: the variable object (from the Variable Catalog).
         var_entity: Var object corresponding to the var object.
     """
+
+    for keys in radd_key:
+        if keys:
+            for key in keys:
+                if key['variable'] == True:
+                    key_entity = Var(name=key['name'])
+                    key_entity.create_node()
+                    var_entity.create_unique_relationship('USING_KEY', key_entity.node)
+
     create_radd_entities(table_name)
     if field_name is not None:
         radd_fields_lists = get_radd_fields(field_name)
@@ -159,16 +168,15 @@ def get_unique_fields(fields):
     unique_fileds = set([f for f in fields.split('~') if f is not None])
     return list(unique_fileds)
     
-def create_radd_entities(radds_list):
+def create_radd_entities(radd_name):
     """Creates RADD entities and their corresponding nodes in the Euler datastore.
 
     Args:
         radds_list: a list of Model names.
     """
-    for radd_name in radds_list:
-        if len(radd_name) > 0 :
-            radd_entity = RADD(name=radd_name)
-            radd_entity.create_node()
+    
+    radd_entity = RADD(name=radd_name)
+    radd_entity.create_node()
 
 def is_empty(str):
     if str is None or len(str) < 1:

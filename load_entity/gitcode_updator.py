@@ -75,10 +75,11 @@ class GitUpdator(object):
             weekly fetch from unified-parent keylib, and set var.is_key = True
 
         """
-        key_url = "https://github.paypal.com/raw/DART/unified-parent/SH/unified-variables/src/main/java/com/paypal/risk/idi/library/keylib/KeyLib.java?token=AAAR5bN6SP0qebX2coDa8jLPMueuvmrNks5dQRwLwA"
-        html = urllib2.urlopen(key_url, context=self.CONTEXT)
-        
-        soup = BeautifulSoup(html, 'html.parser')
+        file_path = "/Users/metang/workspace/unified-parent/unified-variables/src/main/java/com/paypal/risk/idi/library/keylib/KeyLib.java"
+        with open(file_path, "r") as read_file:
+            #json_file = json.load(read_file)
+
+            soup = BeautifulSoup(read_file, 'html.parser')
         var_iskey = " merge (v:Var{{name:'{varname}'}}) \
                         set v.is_key = True"
         for line in soup:
@@ -86,6 +87,7 @@ class GitUpdator(object):
                 keyset = re.findall("(?<=AbstractBaseVariable)(.*)(?==)", line)
                 if len(keyset) >0:                     
                     for evekey in keyset:
+                        print evekey
                         varname = evekey.replace(' ','')
                         graph.cypher.execute(var_iskey.format(varname=varname))
 
@@ -106,7 +108,7 @@ class GitUpdator(object):
                         radd_key = item['keys']
                         var_entity = self._create_var_entity(variable_type, variable_name)
                         utils.radd_handler(field_name, radd_name , radd_key, var_entity)
-
+                    
                     elif variable_type == 'WRITING_EDGE':
                         container_name = item['container_type']              
                         aggregation_type = item['aggregation_type']  # e.g. cnt
@@ -133,28 +135,11 @@ class GitUpdator(object):
                         var_entity = self._create_reading_edge_entity(container_key, variable_name, edge_type)
 
                         utils.edge_handler(container_name,container_key, raw_edge , var_entity)
+                    
                 except:
                     pass
         #decay edge is depending on itself:
         graph.cypher.execute("match(v:Var) where v.name contains '_dk_' and v.edge_type='Decay'  create unique (v)-[:DEPEND_ON]-(v)")
-
-
-    def _create_var_entity(self, variable_type, variable_name):
-        """Creates the variable entity and the remote node in the Euler datastore.
-
-        Args:
-            var: a dictionary with the variable data.
-        Returns:
-            The newly created entity.
-        """
-        try:
-            print 'need update ', var['variable_name']
-            var_entity = Var(name=var['variable_name'],
-                            type=var['variable_type'])
-            var_entity.create_node()
-            return var_entity
-        except ValueError:
-            pass
 
     def _create_raw_edge_entity(self, variable_name, aggregation_type, edge_type):
 
@@ -176,6 +161,23 @@ class GitUpdator(object):
         var_entity.create_node()
         return var_entity
 
+    def _create_var_entity(self, variable_type, variable_name):
+        """Creates the variable entity and the remote node in the Euler datastore.
+
+        Args:
+            var: a dictionary with the variable data.
+        Returns:
+            The newly created entity.
+        """
+        try:
+    
+            var_entity = Var(name=variable_name,
+                            type='RADD')
+            var_entity.create_node()
+            return var_entity
+        except ValueError:
+            pass
 
 GitUpdator().parse_variable_metadata()
 #GitUpdator().get_checkpoint_var_from_code('WITHDRAWALATTEMPT')
+#GitUpdator().get_eve_keylib_from_code()
