@@ -4,8 +4,9 @@ import re
 from entities.watermark import Watermark
 from entities.var import Var
 from entities.radd import RADD
-
+from entities.eventkey import EventKey
 from entities.edge_container import EdgeContainer
+from entities.eventmessage import EventMessage
 
 
 def get_string(iterator, literal_terminator='"'):
@@ -78,7 +79,36 @@ def api_request(address):
     return r
 
 
-def edge_handler(edge_container, edge_key, raw_edge, var_entity):
+def writing_edge_handler(edge_container, var_entity, event_message, event_key):
+    """Handler method for Edge Container dependencies.
+
+    Creates the Edge Container entities and relationship to the variable.
+
+    Args:
+        var: the variable object (from the Variable Catalog).
+        var_entity: Var object corresponding to the var object.
+    """
+    if is_empty(edge_container):
+        return      
+    edge_entity = EdgeContainer(name=edge_container)
+    edge_entity.create_node()
+    var_entity.create_unique_relationship('ATTRIBUTE_OF', edge_entity.node)
+    
+
+    if is_empty(event_key):
+        return   
+    eventkey = EventKey(name=event_key)
+    eventkey.create_node()
+    var_entity.create_unique_relationship('ATTRIBUTE_OF', eventkey.node)
+
+    eventmsg = EventMessage(name=event_message)
+    eventmsg.create_node()
+    print event_message, event_key
+    eventmsg.create_unique_relationship('HAVE_KEY', eventkey.node)
+
+
+
+def reading_edge_handler(edge_container, edge_key, raw_edge, var_entity):
     """Handler method for Edge Container dependencies.
 
     Creates the Edge Container entities and relationship to the variable.

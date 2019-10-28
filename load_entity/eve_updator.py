@@ -28,13 +28,13 @@ class EVEUpdator(object):
             "OnboradingGCCheckpointResult" , "RiskWithdrawalAttemptDecision" , "LoginCheckpointResult" , "BTPaymentAttempt" , "VenmoRemoveFI" , \
             "PaymentAttemptVO" , "VenmoProfileChange" , "PaymentDebitNewDO" , "DisputeLifecycleNewDO" , "RDAConsolidatedDO" , \
             "BraintreeTxnDatalakeTable" , "PartnerDeposit" , "WithdrawalCheckpointResult" , "PaymentAttemptNewDO" , "MUSE_EDGE" , \
-            "RiskAccountTokenCardEvents" , "FPTI_LOGIN" , "NewAccountCreatedNewDO"}
+            "RiskAccountTokenCardEvents" , "FPTI_LOGIN" , "NewAccountCreatedNewDO","AddCCDecisionResult"}
     
     def run_eve_updator(self):
         for event in self.EVENT_LIST:
-            self.get_event_raw_dependency_from_eve(event, event)
+            self.get_event_raw_dependency_from_eve(event)
 
-    def get_event_raw_dependency_from_eve(self, event, table_name):
+    def get_event_raw_dependency_from_eve(self, event):
         """
         weekly fetch from evebuilder eventkey -[:ATTRIBUTE_OF] - raw relationship
                                 and  set raw edge's updator, type, filter, target, etc
@@ -42,15 +42,15 @@ class EVEUpdator(object):
         """
         URL = 'http://grds.paypalinc.com/evebuilder/api/metadata/raw_variables?searchType=by_definition&searchData={event},,,,,,&searchSimilar=false'
 
-        MAP_EVENT_VAR ="match(v:Var{{ name: '{var}'}})   \
-                        merge(e:EventKey{{name: '{eventkey}' }}) \
+        MAP_EVENT_VAR ="merge(v:Var{{ name: '{var}'}})   \
+                        on create  merge(e:EventKey{{name: '{eventkey}' }}) \
                         merge (v)-[:ATTRIBUTE_OF] ->(e) "
 
         SET_EVE_PROPERTY = "match(v:Var{{ name: '{var}'}}) set v.filter = '{filter}', v.eve_type= '{type}', \
                         v.eve_key='{key}', v.target=\"{target}\", v.function='{function}' "
         
         opener = urllib2.build_opener()
-        opener.addheaders.append(('Cookie', 'edge_builder=s%3Av79eqgLsj0XwgxJYigllG8sYRn2JZqdx.xyqUIdp7X7uROP5j6gK2i7UppsDfjr21hYbJyCUCKd0'))
+        opener.addheaders.append(('Cookie', 'edge_builder=s%3A6PKujq1oXg40Qfufm012tKkAuX4oOppH.ieuPnrNPgSy5qJ1y1qhhj6CZ7eWtJu8S5mhxMy0zzy0'))
         html = opener.open(URL.format(event=event))
         json_file = json.loads(html.read())
 
@@ -66,12 +66,15 @@ class EVEUpdator(object):
                         type = var['type'], key =updator['key'], target=updator['target'], function = updator['func'] ))
                         graph.cypher.execute(SET_EVE_PROPERTY.format(var=var['name'], filter= updator['filter'] , \
                         type = var['type'], key =updator['key'], target=updator['target'], function = updator['func'] ))
-                        print MAP_EVENT_VAR.format(eventkey=table_name+'.'+updator['key'], var=var['name'])
-                        graph.cypher.execute(MAP_EVENT_VAR.format(eventkey=table_name+'.'+updator['key'], var=var['name']))
+                        print MAP_EVENT_VAR.format(eventkey=event+'.'+updator['key'], var=var['name'])
+                        graph.cypher.execute(MAP_EVENT_VAR.format(eventkey=event+'.'+updator['key'], var=var['name']))
                 except:
                     pass
 
     def _should_process_raw_edge():
+        MAP_EVENT_VAR ="match(v:Var{{ name: '{var}'}})   \
+                        where v.is \
+                        merge (v)-[:ATTRIBUTE_OF] ->(e) "
+        pass
 
 
-EVEUpdator().run_eve_updator()

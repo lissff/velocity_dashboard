@@ -98,10 +98,10 @@ class GitUpdator(object):
         """
             weekly parse variable_metadata.json from compiling targets from variable-metadata code
         """
-        with open("/Users/metang/workspace/variable-metadata/major-variable-metadata/target/classes/metadata/variable/variable_metadata.json", "r") as read_file:
+        with open("/Users/metang/workspace/variable-metadata/target/classes/metadata/variable/variable_metadata.json", "r") as read_file:
             data = json.load(read_file)
-            rest_data = self._remove_existing_var(data)
-        
+            rest_data = self._only_process_edge(data)
+            print rest_data
             for item in rest_data:
                 try:
                     variable_type = item['type']
@@ -119,8 +119,10 @@ class GitUpdator(object):
                         aggregation_type = item['aggregation_type']  # e.g. cnt
                         value_type = item['value_type'] #e.g. sliding window
                         var_entity = self._create_raw_edge_entity( variable_name, aggregation_type, value_type)
-
-                        utils.edge_handler(container_name,'','',var_entity)
+                        message_name = item['updated_logic'][0]['triggered_event']
+                        event_key = item['updated_logic'][0]['key_expression']
+                        print message_name,event_key
+                        utils.writing_edge_handler(container_name,var_entity, message_name, event_key )
 
 
                     elif variable_type == 'READING_EDGE' and item['edge_type'] == 'Decay':
@@ -129,7 +131,7 @@ class GitUpdator(object):
                         edge_type = item['edge_type'] # e.g. decay
                         var_entity = self._create_reading_edge_entity(container_key, variable_name, edge_type)
 
-                        utils.edge_handler(container_name, container_key,'' , var_entity)
+                        utils.reading_edge_handler(container_name, container_key, '' , var_entity)
 
 
                     elif variable_type == 'READING_EDGE'and item['edge_type'] <> 'Decay':
@@ -139,9 +141,10 @@ class GitUpdator(object):
                         edge_type = item['edge_type'] # e.g. decay
                         var_entity = self._create_reading_edge_entity(container_key, variable_name, edge_type)
 
-                        utils.edge_handler(container_name,container_key, raw_edge , var_entity)
+                        utils.reading_edge_handler(container_name, container_key, raw_edge , var_entity)
                     
-                except:
+                except Exception as e:
+                    print e
                     pass
 
         #decay edge is depending on itself:
@@ -170,11 +173,24 @@ class GitUpdator(object):
 
     def _remove_existing_var(self, dataset):
         varset = set()
+        retset = []
         ret = graph.cypher.execute('match(v:Var) return v.name as name order by name')
         for variable in ret:
             varset.add(variable.name)
-        rest = [i for i in dataset if not (i['name'] in varset)] 
+        for i in dataset:
+            if not (i['name'] in varset):
+                retset.append(i)
+        return retset
+
         
+    def _only_process_edge(self, dataset):
+       
+        retset = []
+       
+        for i in dataset:
+            if (i['type'] == 'READING_EDGE' ):
+                retset.append(i)
+        return retset
 
     def _create_var_entity(self, variable_type, variable_name):
         """Creates the variable entity and the remote node in the datastore.
@@ -193,7 +209,7 @@ class GitUpdator(object):
         except ValueError:
             pass
 
-GitUpdator().parse_variable_metadata()
+#GitUpdator().parse_variable_metadata()
 #GitUpdator().get_checkpoint_var_from_code('WITHDRAWALATTEMPT')
 #GitUpdator().get_eve_keylib_from_code()
 #GitUpdator().run_checkpoint_mapping()

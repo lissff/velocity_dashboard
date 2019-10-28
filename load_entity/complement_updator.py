@@ -10,3 +10,6 @@ def get_lonely_node():
     for var in ret:
         varname = var['name'].rstrip()
 
+
+def get_unmatched_ontology():
+    NO_ONTOLOGY='match(ek:EventKey) where not (ek)-[]-(o:Ontology) return ek.name'

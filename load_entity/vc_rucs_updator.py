@@ -11,7 +11,7 @@ from utils.graph_db import graph
 
 VARIABLE_CATALOG_BASE_URL = 'http://10.176.1.109:3000/api/variables'  # NOQA
 VARIABLE_CATALOG_TOKEN = 'a1f98939c5b8cea62b099e5fb13cf5b7'
-RUCS_DEP_URL = 'http://10.176.4.64:8080/v1/risk/management-portal/component/rucs/dependency?variable={variable}'
+RUCS_DEP_URL = 'https://ccg22riskunifiedmgmt4152.ccg22.lvs.paypalinc.com/api/component/rucs/dependency?variable={variable}'
 CONTEXT = ssl._create_unverified_context()
 
 class VarCatalog(object):
@@ -120,7 +120,7 @@ class VarCatalog(object):
             if 'used_models' in var:
                 self._model_handler(var, var_entity)
             if 'edge_container' in var:
-                utils.edge_handler(var['edge_container'],var['edge_key'], var['edge_value_key'], var_entity)
+                utils.reading_edge_handler(var['edge_container'],var['edge_key'], var['edge_value_key'], var_entity)
             self._get_rucs_dependency(var['variable_name'])
         except AttributeError:
 
@@ -237,5 +237,4 @@ class VarCatalog(object):
             varname = var['name'].rstrip()
 
             self._get_rucs_dependency(varname)
-VarCatalog('edge').run_raw_edge()
-VarCatalog('rtcs').run_rtcs_var()
+
