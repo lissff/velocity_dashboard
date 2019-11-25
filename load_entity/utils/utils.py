@@ -133,7 +133,7 @@ def reading_edge_handler(edge_container, edge_key, raw_edge, var_entity):
         return 
     raw_edge_entity = Var(name=raw_edge, is_raw_edge=True)
     raw_edge_entity.create_node()
-    var_entity.create_unique_relationship('DEPEND_ON', raw_edge_entity.node)
+    var_entity.create_unique_relationship('DERIVE_FROM', raw_edge_entity.node)
 
 def radd_handler(field_name, table_name, radd_key, var_entity):
     """Handler method for RADD dependencies.
@@ -144,7 +144,7 @@ def radd_handler(field_name, table_name, radd_key, var_entity):
         var: the variable object (from the Variable Catalog).
         var_entity: Var object corresponding to the var object.
     """
-
+    
     for keys in radd_key:
         if keys:
             for key in keys:
@@ -153,6 +153,8 @@ def radd_handler(field_name, table_name, radd_key, var_entity):
                     key_entity.create_node()
                     var_entity.create_unique_relationship('USING_KEY', key_entity.node)
 
+    if is_empty(table_name):
+        pass
     create_radd_entities(table_name)
     if field_name is not None:
         radd_fields_lists = get_radd_fields(field_name)

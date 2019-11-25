@@ -12,4 +12,7 @@ def get_lonely_node():
 
 
 def get_unmatched_ontology():
-    NO_ONTOLOGY='match(ek:EventKey) where not (ek)-[]-(o:Ontology) return ek.name'
+    Event_NO_ONTOLOGY='match(ek:EventKey) where not (ek)-[]-(o:Ontology) return ek.name'
+    Key_NO_ONTOLOGY='match(v:Var) where v.is_key =true and not (v)-[]-(:Ontology) return v.name'
+
+#todo  mark all edge without reading key to OTF, e.g. ip_muse_a_detail_pg_perc_sw90_30d

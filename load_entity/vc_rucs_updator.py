@@ -10,6 +10,7 @@ import urllib2
 from utils.graph_db import graph
 
 VARIABLE_CATALOG_BASE_URL = 'http://10.176.1.109:3000/api/variables'  # NOQA
+VARIABLE_CATALOG_CP_URL ='http://10.176.1.109:3000/api/enum'
 VARIABLE_CATALOG_TOKEN = 'a1f98939c5b8cea62b099e5fb13cf5b7'
 RUCS_DEP_URL = 'https://ccg22riskunifiedmgmt4152.ccg22.lvs.paypalinc.com/api/component/rucs/dependency?variable={variable}'
 CONTEXT = ssl._create_unverified_context()
@@ -25,11 +26,12 @@ class VarCatalog(object):
         self.watermark = Watermark('VarCatalog_'+service)
         self.watermark.create_node()
         self.max_datetime = self.watermark.last_updated
-        variable_catalog_full_url = VARIABLE_CATALOG_BASE_URL + '/?token=' + VARIABLE_CATALOG_TOKEN + '&select=all&service=' + service
-        html = urllib2.urlopen(variable_catalog_full_url, context=CONTEXT)
-        self.variables = json.loads(html.read())
+        self.variable_catalog_full_url = VARIABLE_CATALOG_BASE_URL + '/?token=' + VARIABLE_CATALOG_TOKEN + '&select=all&service=' + service
+        self.variable_catalog_cp_url = VARIABLE_CATALOG_CP_URL + '/?token=' + VARIABLE_CATALOG_TOKEN + '&checkpoints'
 
     def run_raw_edge(self):
+        html = urllib2.urlopen(self.variable_catalog_full_url, context=CONTEXT)
+        self.variables = json.loads(html.read())
         self._load_raw_edge()
         self.watermark.update_properties()
 
@@ -39,6 +41,8 @@ class VarCatalog(object):
         Loads new variables to the datastore.
         Updates the Watermark entity with the newest release datetime.
         """
+        html = urllib2.urlopen(self.variable_catalog_full_url, context=CONTEXT)
+        self.variables = json.loads(html.read())
         self._load_variable()
         self.watermark.update_properties()
 
@@ -58,6 +62,9 @@ class VarCatalog(object):
                     self._update_max_datetime(utils.date_str_to_datetime(var['release_date']))
             except:
                 pass
+        # force to set type = 'OTF' (instead of 'EDGE') if it was a variable based on derived edge, e.g. rcvr_diff_auth_amt_dk_160:
+        graph.cypher.execute("match(otf:Var)<-[:DEPEND_ON]-(derived:Var)-[:DEPEND_ON]->(raw:Var) where raw.is_raw_edge is null and derived.type='EDGE'  set derived.type='OTF'")
+
         self.watermark.last_updated = self.max_datetime
 
     def _should_process_variable(self, var):
@@ -227,14 +234,26 @@ class VarCatalog(object):
                 if statement:
                     try:
                         graph.cypher.execute(statement)
-                    except:
+                    except Exception as e:
+                        print e
                         pass
 
+    def _get_checkpoint_list(self):
+        html = urllib2.urlopen(self.variable_catalog_cp_url, context=CONTEXT)
+        checkpoints = json.loads(html.read())
+        for item in checkpoints:
+            if item not in ['BRE', 'POS', 'EDGE']:
+                graph.cypher.execute("MERGE(c:Checkpoint{{name: '{item}'}}) return c.name".format(item = item))
+
+        
+
     def run_test(self):
-        query = "match(v:Var) where v.type='RADD' return v.name as name"
+        query = "match(v:Var) return v.name as name"
         ret = graph.cypher.execute(query)
         for var in ret:
             varname = var['name'].rstrip()
 
             self._get_rucs_dependency(varname)
 
+
+VarCatalog('rtcs')._get_checkpoint_list()

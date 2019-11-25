@@ -17,7 +17,6 @@ class GitUpdator(object):
         
         self.UPDATE_DT = date.today()
         self.CONTEXT = ssl._create_unverified_context()
-        self.CHECKPOINTS = ['ADDCC' , 'CONSOLIDATEDFUNDING' , 'WITHDRAWALATTEMPT']
         
     def run_checkpoint_mapping(self):
         ret = graph.cypher.execute('match(cp:Checkpoint) return cp.name as name order by name')
@@ -31,15 +30,18 @@ class GitUpdator(object):
 
         """
         if checkpoint == 'ConsolidatedFunding':
-            checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/BREFullVariableTrack/BREFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
+            #checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/BREFullVariableTrack/BREFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
             file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/BREFullVariableTrack/BREFullVariableTrack.vt.json"
 
         elif checkpoint == 'WithdrawalAttempt':
-            checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
+            #checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
             file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json"
          
+        elif checkpoint == 'FundingPOS':
+            file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/POSFullVariableTrack/POSFullVariableTrack.vt.json"
+    
         else:
-            checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
+            #checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
             file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/"+checkpoint+"FullVariableTrack/"+checkpoint+"FullVariableTrack.vt.json"
          
 
@@ -100,8 +102,7 @@ class GitUpdator(object):
         """
         with open("/Users/metang/workspace/variable-metadata/target/classes/metadata/variable/variable_metadata.json", "r") as read_file:
             data = json.load(read_file)
-            rest_data = self._only_process_edge(data)
-            print rest_data
+            rest_data = self._remove_existing_var(data)
             for item in rest_data:
                 try:
                     variable_type = item['type']
@@ -113,16 +114,28 @@ class GitUpdator(object):
                         radd_key = item['keys']
                         var_entity = self._create_var_entity(variable_type, variable_name)
                         utils.radd_handler(field_name, radd_name , radd_key, var_entity)
-                    
+
+               
                     elif variable_type == 'WRITING_EDGE':
                         container_name = item['container_type']              
-                        aggregation_type = item['aggregation_type']  # e.g. cnt
                         value_type = item['value_type'] #e.g. sliding window
-                        var_entity = self._create_raw_edge_entity( variable_name, aggregation_type, value_type)
                         message_name = item['updated_logic'][0]['triggered_event']
                         event_key = item['updated_logic'][0]['key_expression']
-                        print message_name,event_key
-                        utils.writing_edge_handler(container_name,var_entity, message_name, event_key )
+
+                        #flattern logical decay writing edge case in EVE
+                        if item['edge_type'] == 'Decay':
+                            for aggr_type in item['aggregation_type']:
+                                for factor in item['factors']:
+                                    variable_name = variable_name+'_'+lower(aggr_type)+'_dk_'+factor
+                                    var_entity = self._create_raw_edge_entity(variable_name, aggr_type, value_type)
+                                    utils.writing_edge_handler(container_name,var_entity, message_name, event_key )
+
+                        else:
+                            aggregation_type = item['aggregation_type']  # e.g. cnt
+                            var_entity = self._create_raw_edge_entity( variable_name, aggregation_type, value_type)
+                            print message_name,event_key
+                            utils.writing_edge_handler(container_name,  var_entity, message_name, event_key )
+                            
 
 
                     elif variable_type == 'READING_EDGE' and item['edge_type'] == 'Decay':
@@ -131,10 +144,18 @@ class GitUpdator(object):
                         edge_type = item['edge_type'] # e.g. decay
                         var_entity = self._create_reading_edge_entity(container_key, variable_name, edge_type)
 
-                        utils.reading_edge_handler(container_name, container_key, '' , var_entity)
+                        utils.reading_edge_handler(container_name, container_key, variable_name , var_entity)
+                
+                    elif variable_type == 'READING_EDGE' and item['edge_type'] == 'TSNC' and 'tsnc' not in variable_name:
+                        container_key = item['container_key']
+                        container_name = item['container_type']
+                        edge_type = item['edge_type'] # e.g. decay
+                        raw_edge = item['corresponding_variable']+'_last_upd_ts'
+                        var_entity = self._create_reading_edge_entity(container_key, variable_name, edge_type)
+                        utils.reading_edge_handler(container_name, container_key, raw_edge , var_entity)
 
 
-                    elif variable_type == 'READING_EDGE'and item['edge_type'] <> 'Decay':
+                    elif variable_type == 'READING_EDGE':
                         container_name = item['container_type']
                         container_key = item['container_key']
                         raw_edge = item['corresponding_variable']
@@ -148,7 +169,6 @@ class GitUpdator(object):
                     pass
 
         #decay edge is depending on itself:
-        graph.cypher.execute("match(v:Var) where v.name contains '_dk_' and v.edge_type='Decay'  create unique (v)-[:DEPEND_ON]-(v)")
         
 
     def _create_raw_edge_entity(self, variable_name, aggregation_type, edge_type):
@@ -210,6 +230,6 @@ class GitUpdator(object):
             pass
 
 #GitUpdator().parse_variable_metadata()
-#GitUpdator().get_checkpoint_var_from_code('WITHDRAWALATTEMPT')
+#GitUpdator().get_checkpoint_var_from_code('PartnerEvalFI')
 #GitUpdator().get_eve_keylib_from_code()
 #GitUpdator().run_checkpoint_mapping()

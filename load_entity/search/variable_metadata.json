@@ -1,0 +1,72 @@
+{"index":{}}
+{"aggregation_type": "SUM","value_type": "SlidingWindow", "status": "Implemented"}
+{"index":{}}
+{
+    "aggregation_type": "CNT",
+    "value_type": "SlidingWindow",
+    "updated_logic": [{
+        "triggered_event": "PaymentAttempt",
+        "rollup_expression": "1",
+        "filter_expression": "((PaymentAttempt.transactionFlags3 & 0x00010000) != 0) && ((PaymentAttempt.transactionFlags & 0x00020000) != 0)",
+        "key_expression": "PaymentAttempt.lastAddedCCNumberHash"
+    }],
+    "bucket_specs": [
+        {
+            "number": 12,
+            "size": "5m"
+        },
+        {
+            "number": 48,
+            "size": "30m"
+        },
+        {
+            "number": 72,
+            "size": "1h"
+        }
+    ],
+    "created_info": {
+        "date": 1554797557680,
+        "reason": "from EVE Builder",
+        "by": "czhang11"
+    },
+    "name": "cc_hash_patmpt_is_mobile_wax_cnt_sw72",
+    "container_type": "CC_HASH",
+    "description": "For every last_cc_hash from EdgePayementAttemptVOWorkflow, consider mobile wax transaction population, calculate slidingwindow count",
+    "type": "WRITING_EDGE",
+    "status": "Implemented"
+}
+{"index":{}}
+{
+    "aggregation_type": "SUM",
+    "value_type": "SlidingWindow",
+    "updated_logic": [{
+        "triggered_event": "PaymentAttempt",
+        "rollup_expression": "PaymentAttempt.amountUsd",
+        "filter_expression": "((PaymentAttempt.transactionFlags3 & 0x00010000) != 0) && ((PaymentAttempt.transactionFlags4 & 0x00000020) == 0)",
+        "key_expression": "PaymentAttempt.lastAddedCCNumberHash"
+    }],
+    "bucket_specs": [
+        {
+            "number": 12,
+            "size": "5m"
+        },
+        {
+            "number": 48,
+            "size": "30m"
+        },
+        {
+            "number": 72,
+            "size": "1h"
+        }
+    ],
+    "created_info": {
+        "date": 1554797557683,
+        "reason": "from EVE Builder",
+        "by": "czhang11"
+    },
+    "name": "cc_hash_patmpt_is_nondcc_wax_sum_amt_sw72",
+    "container_type": "CC_HASH",
+    "description": "For every last_cc_hash from EdgePayementAttemptVOWorkflow, consider nondcc wax population, calculate slidingwindow sum of amount_usd",
+    "type": "WRITING_EDGE",
+    "status": "Implemented"
+}

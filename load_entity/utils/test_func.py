@@ -87,5 +87,19 @@ def get_onto_event_diff():
                 out.write(line.rstrip()+','+ontology)
                 out.write('\n')
 
-    
-get_onto_event_diff()
+
+def parse_dep():
+    statement = (
+           " match(v:Var)-[:DEPEND_ON]->(v2:Var) where v2.name='{varname}' return v.name as name"
+        )
+    with open("modelscore.json", "r") as read_file:
+        for line in read_file:
+            var = line.rstrip()
+            ret = graph.cypher.execute(statement.format(varname=var))
+            for item in ret:
+                if item.name is not None:
+                    print var, item.name
+
+
+
+parse_dep()
