@@ -15,4 +15,7 @@ def get_unmatched_ontology():
     Event_NO_ONTOLOGY='match(ek:EventKey) where not (ek)-[]-(o:Ontology) return ek.name'
     Key_NO_ONTOLOGY='match(v:Var) where v.is_key =true and not (v)-[]-(:Ontology) return v.name'
 
+
+def get_edge_multiple_key():
+    EDGE_MULTIKEY='match(v:Var)-[:USING_KEY]->(key:Var) where v.type='EDGE' with v,length(collect(key.name)) as len  where len > 1 with v match (v)-[:USING_KEY]->(key:Var)  return v.name, collect(key.name)'
 #todo  mark all edge without reading key to OTF, e.g. ip_muse_a_detail_pg_perc_sw90_30d

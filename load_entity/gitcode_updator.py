@@ -13,10 +13,19 @@ from entities.edge_container import EdgeContainer
 
 
 class GitUpdator(object):
+
     def __init__(self):
         
         self.UPDATE_DT = date.today()
         self.CONTEXT = ssl._create_unverified_context()
+
+        self.Event_Mapping = {'IAcctCreditCardEvent':'CreditCardCreated', \
+                    'IAcctSellerDisputeEvent':'DisputeNotification',\
+                    'IAcctSellerFaEvent':'UserFundsAvailabilityEvent',\
+                    'IDisputeCaseSender':'DisputeLifecycle',\
+                    'ITxnEventFunding':'Withdrawal',\
+                    'ITxnSenderPaymentAttempt':'PaymentAttempt',
+                    'ITxnEventSender':'PaymentDebit' }
         
     def run_checkpoint_mapping(self):
         ret = graph.cypher.execute('match(cp:Checkpoint) return cp.name as name order by name')
@@ -119,8 +128,8 @@ class GitUpdator(object):
                     elif variable_type == 'WRITING_EDGE':
                         container_name = item['container_type']              
                         value_type = item['value_type'] #e.g. sliding window
-                        message_name = item['updated_logic'][0]['triggered_event']
-                        event_key = item['updated_logic'][0]['key_expression']
+                        message_name = self._map_eventmessage(item['updated_logic'][0]['triggered_event'])
+                        event_key = self._map_eventkey(item['updated_logic'][0]['key_expression'])
 
                         #flattern logical decay writing edge case in EVE
                         if item['edge_type'] == 'Decay':
@@ -228,8 +237,22 @@ class GitUpdator(object):
             return var_entity
         except ValueError:
             pass
+    def _map_eventmessage(self, message):
 
-#GitUpdator().parse_variable_metadata()
+
+        if message in self.Event_Mapping.keys():
+            event_message = self.Event_Mapping[message]
+            return event_message
+
+    def _map_eventkey(self, eventkey):
+        message_name = eventkey.split('.')[1]
+        if message_name in self.Event_Mapping.keys():
+            event_key = eventkey.replace(message_name, self.Event_Mapping[message_name])
+            return event_key
+
+
+
+GitUpdator().parse_variable_metadata()
 #GitUpdator().get_checkpoint_var_from_code('PartnerEvalFI')
 #GitUpdator().get_eve_keylib_from_code()
 #GitUpdator().run_checkpoint_mapping()

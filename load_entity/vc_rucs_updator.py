@@ -243,6 +243,10 @@ class VarCatalog(object):
         checkpoints = json.loads(html.read())
         for item in checkpoints:
             if item not in ['BRE', 'POS', 'EDGE']:
+                if item =='WITHDRAWAL':
+                    item = 'Withdrawal'
+                if item =='LOGIN':
+                    item = 'Login'
                 graph.cypher.execute("MERGE(c:Checkpoint{{name: '{item}'}}) return c.name".format(item = item))
 
         
