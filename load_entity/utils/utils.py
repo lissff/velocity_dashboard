@@ -155,14 +155,10 @@ def radd_handler(field_name, table_name, radd_key, var_entity):
 
     if is_empty(table_name):
         pass
-    create_radd_entities(table_name)
-    if field_name is not None:
-        radd_fields_lists = get_radd_fields(field_name)
-        if len(radd_fields_lists)>0:
-            for radd_name, fields in zip(table_name, radd_fields_lists):
-                radd_entity = RADD(name=radd_name)
-                var_entity.create_unique_relationship('QUERIES', radd_entity.node,
-                                                        radd_fields=fields)
+    radd_entity = create_radd_entities(table_name)
+
+    
+    var_entity.create_unique_relationship('QUERIES', radd_entity.node)
 
 
 
@@ -209,6 +205,7 @@ def create_radd_entities(radd_name):
     
     radd_entity = RADD(name=radd_name)
     radd_entity.create_node()
+    return radd_entity
 
 def is_empty(str):
     if str is None or len(str) < 1:

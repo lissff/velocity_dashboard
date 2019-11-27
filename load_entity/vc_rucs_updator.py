@@ -7,6 +7,7 @@ from entities.edge_container import EdgeContainer
 import ssl
 import json
 import urllib2
+import time
 from utils.graph_db import graph
 
 VARIABLE_CATALOG_BASE_URL = 'http://10.176.1.109:3000/api/variables'  # NOQA
@@ -31,6 +32,7 @@ class VarCatalog(object):
 
     def run_raw_edge(self):
         html = urllib2.urlopen(self.variable_catalog_full_url, context=CONTEXT)
+        time.sleep(30)
         self.variables = json.loads(html.read())
         self._load_raw_edge()
         self.watermark.update_properties()
@@ -243,10 +245,13 @@ class VarCatalog(object):
         checkpoints = json.loads(html.read())
         for item in checkpoints:
             if item not in ['BRE', 'POS', 'EDGE']:
+                #will remove this pieve of code when onboardinggc is merged into one; then we will use case insensitive mapping
                 if item =='WITHDRAWAL':
                     item = 'Withdrawal'
                 if item =='LOGIN':
                     item = 'Login'
+                if item == 'EvalConsumerCreditUS':
+                    item ='ConsumerCreditUS'
                 graph.cypher.execute("MERGE(c:Checkpoint{{name: '{item}'}}) return c.name".format(item = item))
 
         

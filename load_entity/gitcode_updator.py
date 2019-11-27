@@ -203,7 +203,8 @@ class GitUpdator(object):
     def _remove_existing_var(self, dataset):
         varset = set()
         retset = []
-        ret = graph.cypher.execute('match(v:Var) return v.name as name order by name')
+        # exlude those existing in graph db, and with dependencies somehow
+        ret = graph.cypher.execute("match(v:Var) where v.type in ['EDGE','OTF'] or (v)-[]-(:Radd)  return v.name as name order by name")
         for variable in ret:
             varset.add(variable.name)
         for i in dataset:
@@ -253,6 +254,6 @@ class GitUpdator(object):
 
 
 GitUpdator().parse_variable_metadata()
-#GitUpdator().get_checkpoint_var_from_code('PartnerEvalFI')
+#GitUpdator().get_checkpoint_var_from_code('ConsumerCreditUS')
 #GitUpdator().get_eve_keylib_from_code()
 #GitUpdator().run_checkpoint_mapping()
