@@ -147,10 +147,12 @@ def radd_handler(field_name, table_name, radd_key, var_entity):
     
     for keys in radd_key:
         if keys:
-            for key in keys:
-                if key['variable'] == True:
-                    key_entity = Var(name=key['name'])
+            for item in keys:
+                if 'variable' in item: 
+                    print 'keyname  '+item['name']
+                    key_entity = Var(name=item['name'])
                     key_entity.create_node()
+                   
                     var_entity.create_unique_relationship('USING_KEY', key_entity.node)
 
     if is_empty(table_name):

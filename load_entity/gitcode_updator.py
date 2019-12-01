@@ -49,6 +49,19 @@ class GitUpdator(object):
         elif checkpoint == 'FundingPOS':
             file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/POSFullVariableTrack/POSFullVariableTrack.vt.json"
     
+        elif checkpoint == 'HoldsAssessment':
+            file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/FulfillmentFullVariableTrack/FulfillmentFullVariableTrack.vt.json"
+
+        elif checkpoint == 'SimilityTxn':
+            file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/SimilityFullVariableTrack/SimilityFullVariableTrack.vt.json"
+        elif checkpoint == 'EvalBestCustomerSupportAction':
+            file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/IntentFullVariableTrack/IntentFullVariableTrack.vt.json"
+        
+        elif checkpoint == 'EvalConsumerCreditUS':
+                file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/ConsumerCreditUSFullVariableTrack/ConsumerCreditUSFullVariableTrack.vt.json"
+        elif checkpoint == 'EvalConsumerCreditUK':
+                file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/ConsumerCreditUKFullVariableTrack/ConsumerCreditUKFullVariableTrack.vt.json"
+
         else:
             #checkpoint_url="https://github.paypal.com/raw/DART/unified-parent/develop/unified-models/src/main/resources/updatable-config-models/WithdrawalFullVariableTrack/WithdrawalFullVariableTrack.vt.json?token=TfJMtn7nTXEDuwnnzB64ViLmIHya_SPZHcrQegk_0lKNLBcZ"
             file_path="/Users/metang/workspace/unified-parent/unified-models/src/main/resources/updatable-config-models/"+checkpoint+"FullVariableTrack/"+checkpoint+"FullVariableTrack.vt.json"
@@ -91,19 +104,22 @@ class GitUpdator(object):
         """
         file_path = "/Users/metang/workspace/unified-parent/unified-variables/src/main/java/com/paypal/risk/idi/library/keylib/KeyLib.java"
         with open(file_path, "r") as read_file:
-            #json_file = json.load(read_file)
-
             soup = BeautifulSoup(read_file, 'html.parser')
+        
         var_iskey = " merge (v:Var{{name:'{varname}'}}) \
                         set v.is_key = True"
+        inputset = set()
         for line in soup:
             if 'AbstractBaseVariable' in line:
                 keyset = re.findall("(?<=AbstractBaseVariable)(.*)(?==)", line)
                 if len(keyset) >0:                     
                     for evekey in keyset:
-                        print evekey
-                        varname = evekey.replace(' ','')
-                        graph.cypher.execute(var_iskey.format(varname=varname))
+                        inputset.add(evekey.replace(' ',''))
+
+        rest_data = self._remove_existing_key(inputset)
+        for item in rest_data:
+            print item
+            graph.cypher.execute(var_iskey.format(varname=item))
 
     def parse_variable_metadata(self):
         """
@@ -204,12 +220,22 @@ class GitUpdator(object):
         varset = set()
         retset = []
         # exlude those existing in graph db, and with dependencies somehow
-        ret = graph.cypher.execute("match(v:Var) where v.type in ['EDGE','OTF'] or (v)-[]-(:Radd)  return v.name as name order by name")
+        ret = graph.cypher.execute("match(v:Var) where v.type in['EDGE','OTF'] or (v.type = 'RADD' and (v)-[:USING_KEY]->(:Var)  )return v.name as name order by name")
         for variable in ret:
             varset.add(variable.name)
         for i in dataset:
             if not (i['name'] in varset):
                 retset.append(i)
+        return retset
+
+    def _remove_existing_key(self, inputset):
+        varset = set()
+        retset = []
+        # exlude those existing in graph db, and with dependencies somehow
+        ret = graph.cypher.execute("match(v:Var) where v.is_key = true return v.name as name order by name")
+        for variable in ret:
+            varset.add(variable.name)
+        retset = inputset - varset
         return retset
 
         
@@ -254,6 +280,6 @@ class GitUpdator(object):
 
 
 GitUpdator().parse_variable_metadata()
-#GitUpdator().get_checkpoint_var_from_code('ConsumerCreditUS')
+#GitUpdator().get_checkpoint_var_from_code('EvalConsumerCreditUK')
 #GitUpdator().get_eve_keylib_from_code()
 #GitUpdator().run_checkpoint_mapping()

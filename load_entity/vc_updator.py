@@ -124,7 +124,7 @@ class VarCatalog(object):
         """
         #TODO:call rucs for more info
         try:
-            if 'table_name' in var:
+            if 'table_name' in var and var['table_name']  <> 'N/A':
                 utils.radd_handler(var['field_name'], var['table_name'] , '', var_entity)
             if 'used_models' in var:
                 self._model_handler(var, var_entity)
@@ -250,8 +250,8 @@ class VarCatalog(object):
                     item = 'Withdrawal'
                 if item =='LOGIN':
                     item = 'Login'
-                if item == 'EvalConsumerCreditUS':
-                    item ='ConsumerCreditUS'
+                if item == 'DCAUTH':
+                    item = 'DCAuth'
                 graph.cypher.execute("MERGE(c:Checkpoint{{name: '{item}'}}) return c.name".format(item = item))
 
         

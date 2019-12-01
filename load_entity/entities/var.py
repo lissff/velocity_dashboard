@@ -21,6 +21,7 @@ class Var(GlobalEntity):
         """
         properties['name'] = self.name_normalizer(properties['name'])
         super(Var, self).__init__(uniq_attr_name='name', label='Var', **properties)
+        self.node = self.create_node()
 
     def name_normalizer(self, raw_var_name):
         """Normalizes the Variable's name.

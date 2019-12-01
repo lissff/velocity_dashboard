@@ -1,5 +1,5 @@
 from gitcode_updator import GitUpdator;
-from vc_rucs_updator import VarCatalog;
+from vc_updator import VarCatalog;
 from eve_updator import EVEUpdator;
 
 GitUpdator().parse_variable_metadata()

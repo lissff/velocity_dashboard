@@ -51,9 +51,12 @@ class BaseEntity(object):
             properties: new properties to update
         """
         statement = 'MATCH (n) WHERE id(n) = {node_id} SET n={props} RETURN n'
+       
         # merge current properties with new properties
-        self.properties.update(properties)
-        params = {'node_id': self.node._id, 'props': self.properties}
+        temp = {}
+        temp.update(properties)
+        temp.update(self.properties)
+        params = {'node_id': self.node._id, 'props': temp}
         self.node = graph.cypher.execute(statement, params).one
         self.node.properties.pull()
 
