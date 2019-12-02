@@ -1,9 +1,6 @@
 import syslog
 import pygraphviz as pgv 
 import networkx as nx
-import pydot
-from networkx.drawing.nx_pydot import read_dot
-from networkx.readwrite import json_graph
 
 """
 LOAD CSV WITH HEADERS FROM  "file:////radd_dep.csv" AS row
@@ -24,8 +21,6 @@ MATCH (v: Var{name:var}) MATCH (v2: Var{name: key}) where not(v)-[:USING_KEY]->(
 
 """
 
-#dot_graph = read_dot('dag.dot')
-#print nx.to_dict_of_dicts(dot_graph)
 graph = pgv.AGraph('dag.dot')
 
 class DOTParser():
@@ -72,6 +67,7 @@ class DOTParser():
         down_list = []
       
         for item in self.graph.out_neighbors(edge_item):
+            
             ret = self._parse_label(item)
             if ret and ret[0] == 'variable':
                 down_list.append(ret[1])
