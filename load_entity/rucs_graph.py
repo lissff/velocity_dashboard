@@ -21,14 +21,12 @@ MATCH (v: Var{name:var}) MATCH (v2: Var{name: key}) where not(v)-[:USING_KEY]->(
 
 """
 
-graph = pgv.AGraph('dag.dot')
-
 class DOTParser():
     def __init__(self):
-        self.graph = pgv.AGraph('dag.dot')
-        radd_out_csv = 'radd_dep.csv'
-        edge_out_csv = 'edge_dep.csv'
-        variable_csv = 'var_dep.csv'
+        self.graph = pgv.AGraph('./resources/dag.dot')
+        radd_out_csv = './resources/radd_dep.csv'
+        edge_out_csv = './resources/edge_dep.csv'
+        variable_csv = './resources/var_dep.csv'
         self.radd_file = open(radd_out_csv, "w")
         self.edge_file = open(edge_out_csv, "w")
         self.variable_file = open(variable_csv, "w")
@@ -42,12 +40,12 @@ class DOTParser():
 
                     data_type = item.attr['label'].split('.')[1]
                     if item_type == 'data':
-                        data_name = item.attr['label'].split('.')[2]
+                        data_name = item.attr['label'].split('.')[2].split('|')[0]
                         if data_type =='RADD':
                             downstream, keyset = self.handle_radd(item)
                             if len(downstream) > 0:
                                 self.radd_file.write (data_name+','+'|'.join(downstream)+','+'|'.join(keyset)+'\n')                          
-                        elif data_type =='EDGE_CONTAINER' and data_name == 'ADDRHASH64':
+                        elif data_type =='EDGE_CONTAINER':
 
                             self.handle_edge(item)
 
