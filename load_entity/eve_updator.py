@@ -89,6 +89,15 @@ class EVEUpdator(object):
 LOAD CSV FROM  "file:////eve_definition.csv" AS row
 FIELDTERMINATOR ','
 WITH row
-MERGE (v: Var{name: row[0]}) MERGE(ek:EventKey{name: row[7]+'.'+row[4]}) merge (v)-[:ATTRIBUTE_OF]->(ek) set v.edge_type=row[1], v.target=row[2], v.edge_func=row[3], v.eve_key=row[4], v.filter=row[5]
+MERGE (v: Var{name: row[0]}) MERGE(ek:EventKey{name: row[7]+'.'+row[4]}) 
+merge (v)-[:ATTRIBUTE_OF]->(ek) set v.edge_type=row[1], v.target=row[2], v.edge_func=row[3], v.eve_key=row[4], v.filter=row[5]
+"""
+
+"""
+LOAD CSV FROM  "file:////eve_definition.csv" AS row
+FIELDTERMINATOR ','
+WITH row
+MERGE (em: EventMessage{name: row[7]}) MERGE(ek:EventKey{name: row[7]+'.'+row[4]}) merge (em)-[:HAVE_KEY]->(ek) 
+
 """
 EVEUpdator().get_edge_definition()

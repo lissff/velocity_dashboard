@@ -22,23 +22,10 @@ class RADD(GlobalEntity):
 
         Inits used_fields to an empty list.
         """
-        properties['name'] = self.name_normalizer(properties['name'])
+        properties['name'] = properties['name']
         super(RADD, self).__init__(uniq_attr_name='name', label='Radd', **properties)
         self.used_fields = 'n/a'
 
-    def name_normalizer(self, raw_radd_name):
-        """Normalizes the RADD's name.
-
-        Removes _RADD postfix and converts to all upper case.
-
-        Args:
-            raw_radd_name: the RADD name before normalization
-
-        Returns:
-            The normalized name (string).
-        """
-        normalized_name = re.sub(r'\s+|(_+RADD)*$', '', raw_radd_name, flags=re.IGNORECASE)
-        return normalized_name.upper()
 
     def append_radd_field(self, radd_field):
         if self.used_fields == 'n/a':

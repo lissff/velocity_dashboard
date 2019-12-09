@@ -19,21 +19,9 @@ class Var(GlobalEntity):
             - label: Var
             - properties
         """
-        properties['name'] = self.name_normalizer(properties['name'])
+        properties['name'] = properties['name']
         super(Var, self).__init__(uniq_attr_name='name', label='Var', **properties)
         self.node = self.create_node()
 
-    def name_normalizer(self, raw_var_name):
-        """Normalizes the Variable's name.
 
-        Removes (@|ARS_) prefix if needed.
-        Converts to all lower case.
 
-        Args:
-            raw_var_name: the variable name before normalization
-
-        Returns:
-            The normalized name (string).
-        """
-        normalized_name = re.sub(r'^(@|ARS_)', '', raw_var_name, flags=re.IGNORECASE)
-        return normalized_name

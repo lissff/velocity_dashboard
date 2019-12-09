@@ -17,10 +17,32 @@ FIELDTERMINATOR ','
 WITH row, split(row.key,  '|') as keys, split(row.down, '|') as vars
 UNWIND vars as var
 with var, keys  UNWIND keys AS key
-MATCH (v: Var{name:var}) MATCH (v2: Var{name: key}) where not(v)-[:USING_KEY]->(v2) create unique (v)-[:USING_KEY]->(v2)
+MATCH (v: Var{name:var}) MATCH (v2: Var{name: key}) where not(v)-[:USING_KEY]->(v2)
+and not v.name contains 'IDI_'
+create unique (v)-[:USING_KEY]->(v2)
 
 """
 
+"""
+using variable dependency to calibrate issues caused by radd-var dependencies, e.g. multiple keys, variable groups
+but need to be super careful about the deletions
+"""
+"""
+LOAD CSV WITH HEADERS FROM  "file:////var_dep.csv" AS row
+FIELDTERMINATOR ','
+WITH row, split(row.key,  '|') as keyset
+UNWIND keyset AS each_key
+MATCH (v: Var{name: row.var})-[rel:USING_KEY]->(vk:Var) where v.type='RADD' 
+and not vk.name in keyset delete rel
+"""
+
+"""
+LOAD CSV WITH HEADERS FROM  "file:////var_dep.csv" AS row
+FIELDTERMINATOR ','
+WITH row, split(row.key,  '|') as keyset
+UNWIND keyset AS each_key
+MATCH (v: Var{name: row.var})-[]-(r:Radd) MATCH (v2: Var{name: each_key}) where v.type = 'RADD' and not (v)-[:USING_KEY]->(v2) and not (v)-[:DEPEND_ON]->(v2) merge(v)-[:USING_KEY]->(v2)
+"""
 class DOTParser():
     def __init__(self):
         self.graph = pgv.AGraph('./resources/dag.dot')

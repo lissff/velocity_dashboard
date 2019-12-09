@@ -2,7 +2,8 @@ import syslog
 import json_tools
 import json
 from jsondiff import diff
-
+from utils import utils
+from utils.graph_db import graph
 
 def compare_json_diff(original_file, latest_file):
  
@@ -48,7 +49,52 @@ def generate_sign(dataset):
             sign_set.add(item['name']+'|'+item.get('updated_logic','edge')[0].get('filter_expression'))
     return sign_set    
 
+def get_radd_name():
+    addback=['IDI_POS_AMT_STATS', 'IDI_UNQ_DEVICE', 'IDI_POS_MERCHANT_STATS', 'IDI_GRS_COUNTRY_RSK_FACTOR', 'IDI_MCC_TI_FRAUD_SCORE', 'IDI_POS_MERCHANT_RISK']
+    with open("/Users/metang/workspace/variable-metadata/target/classes/metadata/variable/variable_metadata.json", "r") as read_file:
+        data = json.load(read_file)
+        radd = set()
+        for item in data:
+            try:
+                variable_type = item.get('type')            
+                if  variable_type == 'RADD' and item.get('table_name') in addback:
+                     utils.radd_handler(item)
+                    
+            except Exception as e:
+                print e
+                pass
+     
+ 
+def get_diff():
+    set_old_ek = set()
+    set_new_ek = set()
 
-compare_json_diff('cp_variable_metadata.json','variable_metadata.json')
+    set_old_em = set()
+    set_new_em = set()
 
-fetch_retired_variable('cp_variable_metadata.json','variable_metadata.json')
+    eve_file = open('./resources/eve_definition.csv', "r")
+    for row in eve_file:
+        line = row.rstrip().split(',')
+        set_new_ek.add(line[7]+'.'+line[4])
+        
+        set_new_em.add(line[7])
+
+
+
+    ek_cypher_query = 'match(ek:EventKey) return ek.name as name'
+    em_cypher_query = 'match(ek:EventMessage) return ek.name as name'
+    ek_ret = graph.cypher.execute(ek_cypher_query)
+    for item in ek_ret:
+        set_old_ek.add(item.name)
+    em_ret = graph.cypher.execute(em_cypher_query)
+    for item in em_ret:
+        set_old_em.add(item.name)
+
+    print set_old_ek - set_new_ek
+    print set_old_em - set_old_em
+
+
+#compare_json_diff('cp_variable_metadata.json','variable_metadata.json')
+
+#fetch_retired_variable('cp_variable_metadata.json','variable_metadata.json')
+get_diff()
